@@ -78,7 +78,7 @@ public enum Compression {
         public OutputStream cover(OutputStream stream) throws IOException {
             try {
                 if (BZip2Compressor != null) {
-                    return BZip2Compressor.newInstance(stream);
+                    return BZip2Compressor.newInstance(stream, 9);
                 }
             } catch (Exception e) {
                 throw new IOException("Can't build BZip2 compressor", e);
