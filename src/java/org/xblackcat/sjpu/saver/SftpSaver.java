@@ -1,7 +1,6 @@
 package org.xblackcat.sjpu.saver;
 
 import com.jcraft.jsch.*;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -146,7 +145,11 @@ public class SftpSaver implements ISaver {
                         try (OutputStream os = new BufferedOutputStream(
                                 compression.cover(c.put(path, ChannelSftp.OVERWRITE))
                         )) {
-                            IOUtils.copy(data, os);
+                            final byte[] buffer = new byte[8024];
+                            int n = 0;
+                            while (-1 != (n = data.read(buffer))) {
+                                os.write(buffer, 0, n);
+                            }
                         }
                     } catch (SftpException e) {
                         throw new IOException("Can't upload file to " + target, e);
