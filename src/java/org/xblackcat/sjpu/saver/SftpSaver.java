@@ -4,7 +4,7 @@ import com.jcraft.jsch.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xblackcat.sjpu.utils.DebugUtils;
+import org.xblackcat.sjpu.utils.UriUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -163,7 +163,7 @@ public class SftpSaver implements ISaver {
                 session.disconnect();
             }
         } catch (JSchException e) {
-            throw new IOException("Can't connect to " + DebugUtils.toString(target), e);
+            throw new IOException("Can't connect to " + UriUtils.toString(target), e);
         }
     }
 
