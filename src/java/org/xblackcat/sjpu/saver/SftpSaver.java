@@ -142,11 +142,17 @@ public class SftpSaver implements ISaver {
                             log.debug("Upload file to " + path);
                         }
 
-                        try (OutputStream os = new BufferedOutputStream(
-                                compression.cover(c.put(path, ChannelSftp.OVERWRITE))
-                        )) {
+                        int i = path.lastIndexOf('/');
+                        if (i >= 0) {
+                            String parent = path.substring(0, i);
+                            if (!isDir(c, parent)) {
+                                mkdirs(c, parent);
+                            }
+                        }
+
+                        try (OutputStream os = compression.cover(new BufferedOutputStream(c.put(path, ChannelSftp.OVERWRITE)))) {
                             final byte[] buffer = new byte[8024];
-                            int n = 0;
+                            int n;
                             while (-1 != (n = data.read(buffer))) {
                                 os.write(buffer, 0, n);
                             }
@@ -165,6 +171,37 @@ public class SftpSaver implements ISaver {
         } catch (JSchException e) {
             throw new IOException("Can't connect to " + UriUtils.toString(target), e);
         }
+    }
+
+    private static void mkdirs(ChannelSftp channel, String path) throws SftpException {
+
+        int i = path.lastIndexOf('/');
+        if (i >= 0) {
+            String parentPath = path.substring(0, i);
+            boolean isDir = isDir(channel, parentPath);
+            if (!isDir) {
+                mkdirs(channel, parentPath);
+            }
+        }
+
+        channel.mkdir(path);
+    }
+
+    private static boolean isDir(ChannelSftp channel, String parentPath) {
+        try {
+            if (log.isTraceEnabled()) {
+                log.trace("Check parent folder for existence: " + parentPath);
+            }
+            SftpATTRS stat = channel.stat(parentPath);
+            return stat != null && stat.isDir();
+        } catch (SftpException e) {
+            // Not found
+            if (log.isTraceEnabled()) {
+                log.trace("Folder " + parentPath + " is not exists.", e);
+            }
+            return false;
+        }
+
     }
 
     private static String decode(String s) throws UnsupportedEncodingException {
