@@ -112,12 +112,12 @@ public enum Compression {
         BZip2Compressor = initializeConstructor(
                 OutputStream.class,
                 "org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream",
-                Integer.TYPE
+                int.class
         );
         XZCompressor = initializeConstructor(
                 OutputStream.class,
                 "org.apache.commons.compress.compressors.xz.XZCompressorOutputStream",
-                Integer.TYPE
+                int.class
         );
         BZip2Decompressor = initializeConstructor(
                 InputStream.class,
