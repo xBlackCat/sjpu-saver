@@ -4,6 +4,7 @@ import com.jcraft.jsch.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.xblackcat.sjpu.utils.IOUtils;
 import org.xblackcat.sjpu.utils.UriUtils;
 
 import java.io.*;
@@ -151,11 +152,7 @@ public class SftpSaver implements ISaver {
                         }
 
                         try (OutputStream os = compression.cover(new BufferedOutputStream(c.put(path, ChannelSftp.OVERWRITE)))) {
-                            final byte[] buffer = new byte[8024];
-                            int n;
-                            while (-1 != (n = data.read(buffer))) {
-                                os.write(buffer, 0, n);
-                            }
+                            IOUtils.copy(data, os);
                         }
                     } catch (SftpException e) {
                         throw new IOException("Can't upload file to " + target, e);

@@ -1,11 +1,11 @@
 package org.xblackcat.sjpu.saver;
 
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.xblackcat.sjpu.utils.IOUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

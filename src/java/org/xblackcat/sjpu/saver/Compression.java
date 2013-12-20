@@ -149,7 +149,7 @@ public enum Compression {
             constructor = aClass.getConstructor(args);
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             constructor = null;
-            log.error("Can't initialize compressor " + className, e);
+            log.warn("Can't initialize compressor " + className, e);
         }
 
         return constructor;
