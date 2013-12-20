@@ -153,6 +153,8 @@ public class SftpSaver implements ISaver {
 
                         try (OutputStream os = compression.cover(new BufferedOutputStream(c.put(path, ChannelSftp.OVERWRITE)))) {
                             IOUtils.copy(data, os);
+
+                            os.flush();
                         }
                     } catch (SftpException e) {
                         throw new IOException("Can't upload file to " + target, e);

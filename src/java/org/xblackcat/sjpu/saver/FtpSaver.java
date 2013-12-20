@@ -50,39 +50,21 @@ public class FtpSaver implements ISaver {
             }
 
             String file = target.getPath();
+            ftp.setFileType(FTP.ASCII_FILE_TYPE);
+
+            ensurePathExists(ftp, file.substring(0, file.lastIndexOf('/')));
+
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
             OutputStream os = ftp.storeFileStream(file);
 
             if (os == null) {
-                if (ftp.getReplyCode() != 550) {
-                    throw new IOException(
-                            "Can not upload file to server. Reply: " +
-                                    ftp.getReplyString() +
-                                    " (" +
-                                    ftp.getReplyCode() +
-                                    ")"
-                    );
-                }
-                // Try to create target folder
-
-                String folder = file.substring(0, file.lastIndexOf('/'));
-
-                if (log.isTraceEnabled()) {
-                    log.trace("Make folder: " + folder);
-                }
-
-                if (StringUtils.isNotEmpty(folder)) {
-                    ftp.setFileType(FTP.ASCII_FILE_TYPE);
-                    if (!ftp.makeDirectory(folder)) {
-                        throw new IOException("Can not create target folder");
-                    }
-                }
-
-                if (log.isTraceEnabled()) {
-                    log.trace("Try to re-open file stream for file " + file);
-                }
-                ftp.setFileType(FTP.BINARY_FILE_TYPE);
-                os = ftp.storeFileStream(file);
+                throw new IOException(
+                        "Can not upload file " + file + " to server. Reply: " +
+                                ftp.getReplyString() +
+                                " (" +
+                                ftp.getReplyCode() +
+                                ")"
+                );
             }
 
             if (log.isTraceEnabled()) {
@@ -93,11 +75,33 @@ public class FtpSaver implements ISaver {
                 os = compression.cover(new BufferedOutputStream(os));
 
                 IOUtils.copy(data, os);
+
+                os.flush();
             } finally {
                 os.close();
             }
         } finally {
             ftp.disconnect();
+        }
+    }
+
+    private void ensurePathExists(FTPClient ftp, String path) throws IOException {
+        if (path == null || path.length() == 0) {
+            throw new NullPointerException("Empty or null path");
+        }
+
+        if ("/".equals(path)) {
+            return;
+        }
+
+        if (ftp.changeWorkingDirectory(path)) {
+            return;
+        }
+
+        ensurePathExists(ftp, path.substring(0, path.lastIndexOf('/')));
+
+        if (!ftp.makeDirectory(path)) {
+            throw new IOException("Can't create FTP folder " + path);
         }
     }
 }

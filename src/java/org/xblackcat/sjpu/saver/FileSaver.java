@@ -35,6 +35,7 @@ public class FileSaver implements ISaver {
         }
         try (OutputStream os = compression.cover(new BufferedOutputStream(new FileOutputStream(destination)))) {
             IOUtils.copy(data, os);
+            os.flush();
         }
     }
 }
