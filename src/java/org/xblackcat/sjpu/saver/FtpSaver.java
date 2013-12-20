@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.xblackcat.sjpu.utils.IOUtils;
+import org.xblackcat.sjpu.utils.UriUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -50,11 +51,12 @@ public class FtpSaver implements ISaver {
             }
 
             String file = target.getPath();
-            ftp.setFileType(FTP.ASCII_FILE_TYPE);
 
             ensurePathExists(ftp, file.substring(0, file.lastIndexOf('/')));
 
-            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+            if (!ftp.setFileType(FTP.BINARY_FILE_TYPE)) {
+                throw new IOException("Can't set binary mode");
+            }
             OutputStream os = ftp.storeFileStream(file);
 
             if (os == null) {
@@ -80,17 +82,21 @@ public class FtpSaver implements ISaver {
             } finally {
                 os.close();
             }
+            if (!ftp.completePendingCommand()) {
+                throw new IOException("Can't save data to " + UriUtils.toString(target));
+            }
+            ftp.logout();
         } finally {
             ftp.disconnect();
         }
     }
 
     private void ensurePathExists(FTPClient ftp, String path) throws IOException {
-        if (path == null || path.length() == 0) {
+        if (path == null) {
             throw new NullPointerException("Empty or null path");
         }
 
-        if ("/".equals(path)) {
+        if (path.length() == 0 || "/".equals(path)) {
             return;
         }
 
