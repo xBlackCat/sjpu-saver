@@ -4,9 +4,9 @@
 
     <property file="build.properties"/>
     <!-- Uncomment the following property if no tests compilation is needed -->
-    <!--
-   <property name="skip.tests" value="true"/>
-    -->
+
+    <property name="skip.tests" value="true"/>
+
 
     <!-- Compiler options -->
 
@@ -61,18 +61,16 @@
 
     <!-- Modules -->
 
-    <dirname property="module.basedir" file="${ant.file}"/>
-
 
     <property name="compiler.args" value="${compiler.args}"/>
 
-    <property name="output.dir" value="${module.basedir}/out"/>
+    <property name="output.dir" value="${basedir}/out"/>
     <property name="temp.dir" value="${output.dir}/tmp"/>
     <property name="mainoutput.dir"
               value="${output.dir}/production/${ant.project.name}"/>
     <property name="testoutput.dir"
               value="${output.dir}/test/${ant.project.name}"/>
-    <property name="output.dist" value="${module.basedir}/dist"/>
+    <property name="output.dist" value="${basedir}/dist"/>
     <loadfile property="file.lib.version" srcfile="build.txt" failonerror="false"/>
 
     <path id="classpath">
@@ -87,6 +85,11 @@
         <path refid="classpath"/>
     </path>
 
+    <path id="test.classpath">
+        <pathelement location="${mainoutput.dir}"/>
+        <path refid="classpath"/>
+    </path>
+
     <patternset id="excluded.from.module">
         <patternset refid="ignored.files"/>
     </patternset>
@@ -96,13 +99,19 @@
     </patternset>
 
     <path id="module.sourcepath">
-        <dirset dir="${module.basedir}">
+        <dirset dir="${basedir}">
             <include name="src/java"/>
         </dirset>
     </path>
 
+    <path id="module.test.sourcepath">
+        <dirset dir="${basedir}">
+            <include name="test/java"/>
+        </dirset>
+    </path>
+
     <target name="compile.module"
-            depends="compile.module.production,compile.module.tests"
+            depends="compile.module.production,compile.module.tests, test"
             description="Compile module ${ant.project.name}"/>
 
     <target name="compile.module.production"
@@ -124,7 +133,42 @@
     </target>
 
     <target name="compile.module.tests" depends="compile.module.production"
-            description="compile module ${ant.project.name}; test classes" unless="skip.tests"/>
+            description="compile module ${ant.project.name}; test classes" unless="skip.tests">
+        <mkdir dir="${testoutput.dir}"/>
+        <javac destdir="${testoutput.dir}"
+               includeantruntime="false"
+               debug="${compiler.debug}"
+               nowarn="${compiler.generate.no.warnings}"
+               memorymaximumsize="${compiler.max.memory}"
+               source="1.7"
+               target="1.7"
+               fork="true">
+            <compilerarg line="${compiler.args}"/>
+            <classpath refid="test.classpath"/>
+            <src refid="module.test.sourcepath"/>
+            <patternset refid="excluded.from.compilation"/>
+        </javac>
+
+    </target>
+
+    <target name="test" description="Make tests before packaging application" depends="compile.module.tests" unless="skip.tests">
+        <mkdir dir="${basedir}/report"/>
+        <junit haltonerror="yes" haltonfailure="yes" fork="true">
+            <classpath>
+                <path refid="test.classpath"/>
+                <pathelement location="${testoutput.dir}"/>
+                <pathelement location="${basedir}/test/res"/>
+            </classpath>
+
+            <batchtest todir="${basedir}/report">
+                <formatter type="xml"/>
+                <fileset dir="${testoutput.dir}">
+                    <include name="**/*.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
 
     <target name="clean.module" description="cleanup module">
         <delete dir="${output.dist}"/>
