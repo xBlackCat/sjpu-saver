@@ -52,7 +52,7 @@ public class FtpSaver implements ISaver {
 
             String file = target.getPath();
 
-            ensurePathExists(ftp, file.substring(0, file.lastIndexOf('/')));
+            SaverUtils.ensurePathExists(ftp, file.substring(0, file.lastIndexOf('/')));
 
             if (!ftp.setFileType(FTP.BINARY_FILE_TYPE)) {
                 throw new IOException("Can't set binary mode");
@@ -88,26 +88,6 @@ public class FtpSaver implements ISaver {
             ftp.logout();
         } finally {
             ftp.disconnect();
-        }
-    }
-
-    private void ensurePathExists(FTPClient ftp, String path) throws IOException {
-        if (path == null) {
-            throw new NullPointerException("Empty or null path");
-        }
-
-        if (path.length() == 0 || "/".equals(path)) {
-            return;
-        }
-
-        if (ftp.changeWorkingDirectory(path)) {
-            return;
-        }
-
-        ensurePathExists(ftp, path.substring(0, path.lastIndexOf('/')));
-
-        if (!ftp.makeDirectory(path)) {
-            throw new IOException("Can't create FTP folder " + path);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.xblackcat.sjpu.saver;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,7 @@ public class Saver implements ISaver {
     private final Map<String, String> savers;
 
     public Saver() {
-        savers = new HashMap<String, String>();
+        savers = new HashMap<>();
 
         savers.put("ftp", "org.xblackcat.sjpu.saver.FtpSaver");
         savers.put("file", "org.xblackcat.sjpu.saver.FileSaver");
@@ -44,5 +45,18 @@ public class Saver implements ISaver {
         ISaver realSaver = get(target);
 
         realSaver.save(target, data, compression);
+    }
+
+    public static ILocation open(URI basePath) throws IOException {
+        switch (basePath.getScheme()) {
+            case "file":
+                return new FileLocation(basePath);
+            case "ftp":
+                return new FtpLocation(basePath);
+            case "sftp":
+                return new SftpLocation(basePath);
+            default:
+                throw new MalformedURLException("unknown protocol: " + basePath.getScheme());
+        }
     }
 }

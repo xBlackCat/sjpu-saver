@@ -1,9 +1,5 @@
 package org.xblackcat.sjpu.saver;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
-import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -103,10 +99,10 @@ public enum Compression {
 
     private static final Log log = LogFactory.getLog(Compression.class);
 
-    private static final Constructor<BZip2CompressorOutputStream> BZip2Compressor;
-    private static final Constructor<XZCompressorOutputStream> XZCompressor;
-    private static final Constructor<BZip2CompressorInputStream> BZip2Decompressor;
-    private static final Constructor<XZCompressorInputStream> XZDecompressor;
+    private static final Constructor<? extends OutputStream> BZip2Compressor;
+    private static final Constructor<? extends OutputStream> XZCompressor;
+    private static final Constructor<? extends InputStream> BZip2Decompressor;
+    private static final Constructor<? extends InputStream> XZDecompressor;
 
     static {
         BZip2Compressor = initializeConstructor(
