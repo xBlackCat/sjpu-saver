@@ -98,7 +98,7 @@ class SftpLocation implements ILocation {
                 try {
                     fingerPrintAcceptor = new FingerPrintAcceptor(fingerPrint);
                 } catch (NoSuchAlgorithmException e) {
-                    throw new IOException(e.getMessage(), e);
+                    throw new IOException("Can't initialize fingerprint checker", e);
                 }
             }
 
@@ -187,7 +187,7 @@ class SftpLocation implements ILocation {
                 channel.disconnect();
             }
         } catch (JSchException e) {
-            throw new IOException("Failed to save data to sftp://" + host + (port == -1 ? "" : (":" + port)) + "/" + file);
+            throw new IOException("Failed to save data to sftp://" + host + (port == -1 ? "" : (":" + port)) + "/" + file, e);
         }
     }
 
@@ -202,7 +202,6 @@ class SftpLocation implements ILocation {
         if (session != null && session.isConnected()) {
             return;
         }
-
 
         try {
             JSch jsch = new JSch();
@@ -224,7 +223,7 @@ class SftpLocation implements ILocation {
 
             session.connect();
         } catch (JSchException e) {
-            throw new IOException("", e);
+            throw new IOException("Failed to establish a SFTP session", e);
         }
     }
 
