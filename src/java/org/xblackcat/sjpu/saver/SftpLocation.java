@@ -200,7 +200,16 @@ class SftpLocation implements ILocation {
 
     private void validateSession() throws IOException {
         if (session != null && session.isConnected()) {
-            return;
+            try {
+                // Ping
+                ChannelExec testChannel = (ChannelExec) session.openChannel("exec");
+                testChannel.setCommand("true");
+                testChannel.connect();
+                testChannel.disconnect();
+                return;
+            } catch (JSchException e) {
+                // Ignore
+            }
         }
 
         try {
