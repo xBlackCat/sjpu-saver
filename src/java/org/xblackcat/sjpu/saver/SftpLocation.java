@@ -154,6 +154,10 @@ class SftpLocation implements ILocation {
             file = FilenameUtils.separatorsToUnix(FilenameUtils.concat(this.path, path));
         }
 
+        if (StringUtils.isBlank(file)) {
+            throw new IOException("Invalid target path");
+        }
+
         try {
             Channel channel = session.openChannel("sftp");
             channel.connect();
