@@ -143,7 +143,7 @@ public enum Compression {
             @SuppressWarnings("unchecked")
             final Class<Target> aClass = (Class<Target>) Class.forName(className);
             constructor = aClass.getConstructor(args);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
+        } catch (ReflectiveOperationException | LinkageError e) {
             constructor = null;
             log.warn("Can't initialize compressor " + className, e);
         }
