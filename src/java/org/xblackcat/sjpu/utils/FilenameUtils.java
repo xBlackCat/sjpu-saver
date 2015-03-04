@@ -318,6 +318,7 @@ public class FilenameUtils {
      * /foo/.. + /bar       -->   /bar
      * /foo + bar/c.txt     -->   /foo/bar/c.txt
      * /foo/c.txt + bar     -->   /foo/c.txt/bar (!)
+     * /foo/c.txt + null    -->   /foo/c.txt (!)
      * </pre>
      * (*) Note that the Windows relative drive prefix is unreliable when
      * used with this method.
@@ -331,7 +332,7 @@ public class FilenameUtils {
     public static String concat(String basePath, String fullFilenameToAdd) {
         int prefix = getPrefixLength(fullFilenameToAdd);
         if (prefix < 0) {
-            return null;
+            return basePath;
         }
         if (prefix > 0) {
             return normalize(fullFilenameToAdd);

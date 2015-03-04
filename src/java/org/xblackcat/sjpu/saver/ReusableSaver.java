@@ -44,7 +44,7 @@ public class ReusableSaver implements ISaver, AutoCloseable {
                 return p;
             }
 
-            p = Saver.open(base);
+            p = SaverUtils.openLocation(base);
             openSavers.put(base, p);
 
             return p;

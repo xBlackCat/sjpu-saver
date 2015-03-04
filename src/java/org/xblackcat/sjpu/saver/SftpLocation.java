@@ -11,8 +11,8 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
@@ -29,7 +29,7 @@ class SftpLocation implements ILocation {
     private final String host;
     private final int port;
     private byte[] passphrase;
-    private FingerPrintAcceptor fingerPrintAcceptor;
+    private HostKeyRepository fingerPrintAcceptor;
     private String privateKeyFile;
     private String userName;
     private String path;
@@ -52,6 +52,7 @@ class SftpLocation implements ILocation {
             privateKeyFile = null;
             String privateKeyPass = null;
             byte[] fingerPrint = null;
+            boolean acceptAll = false;
 
             String[] params = StringUtils.split(info[1], ',');
 
@@ -70,6 +71,10 @@ class SftpLocation implements ILocation {
             }
 
             for (String param : params) {
+                if ("accept-all".equalsIgnoreCase(param)) {
+                    acceptAll = true;
+                    continue;
+                }
                 final Matcher m = SaverUtils.PARAM_FETCHER.matcher(param);
                 if (!m.matches()) {
                     if (log.isWarnEnabled()) {
@@ -82,7 +87,13 @@ class SftpLocation implements ILocation {
                 String value = SaverUtils.decode(m.group(2));
 
                 if ("fingerprint".equalsIgnoreCase(name)) {
-                    fingerPrint = new BigInteger(StringUtils.remove(value, '-'), 16).toByteArray();
+                    String hexString = StringUtils.remove(value, '-');
+                    fingerPrint = new byte[16];
+                    ByteBuffer bb = ByteBuffer.wrap(fingerPrint);
+                    bb.putInt((int) Long.parseLong(hexString.substring(0, 8), 16));
+                    bb.putInt((int) Long.parseLong(hexString.substring(8, 16), 16));
+                    bb.putInt((int) Long.parseLong(hexString.substring(16, 24), 16));
+                    bb.putInt((int) Long.parseLong(hexString.substring(24, 32), 16));
                 } else if ("private-key-file".equalsIgnoreCase(name)) {
                     privateKeyFile = value;
                 } else if ("pk-passphrase".equalsIgnoreCase(name)) {
@@ -94,7 +105,9 @@ class SftpLocation implements ILocation {
                 passphrase = privateKeyPass != null ? privateKeyPass.getBytes(StandardCharsets.UTF_8) : null;
             }
 
-            if (fingerPrint != null) {
+            if (acceptAll) {
+                fingerPrintAcceptor = new AcceptAllHostKeyRepository();
+            } else if (fingerPrint != null) {
                 try {
                     fingerPrintAcceptor = new FingerPrintAcceptor(fingerPrint);
                 } catch (NoSuchAlgorithmException e) {
