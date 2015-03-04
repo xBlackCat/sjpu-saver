@@ -44,9 +44,14 @@ public class SftpSaver implements ISaver {
                 String privateKeyFile = null;
                 String privateKeyPass = null;
                 byte[] fingerPrint = null;
+                boolean acceptAll = false;
 
                 String[] params = StringUtils.split(info[1], ',');
                 for (String param : params) {
+                    if ("accept-all".equalsIgnoreCase(param)) {
+                        acceptAll = true;
+                        continue;
+                    }
                     final Matcher m = SaverUtils.PARAM_FETCHER.matcher(param);
                     if (!m.matches()) {
                         if (log.isWarnEnabled()) {
@@ -74,7 +79,9 @@ public class SftpSaver implements ISaver {
                     jsch.addIdentity(privateKeyFile, passphrase);
                 }
 
-                if (fingerPrint != null) {
+                if (acceptAll) {
+                    jsch.setHostKeyRepository(new AcceptAllHostKeyRepository());
+                } else if (fingerPrint != null) {
                     try {
                         jsch.setHostKeyRepository(new FingerPrintAcceptor(fingerPrint));
                     } catch (NoSuchAlgorithmException e) {
@@ -170,4 +177,5 @@ public class SftpSaver implements ISaver {
             throw new IOException("Can't connect to " + UriUtils.toString(target), e);
         }
     }
+
 }
