@@ -15,7 +15,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
 
 /**
  * 18.06.2014 18:20
@@ -25,68 +24,31 @@ import java.util.regex.Matcher;
 class SftpLocation implements ILocation {
     private static final Log log = LogFactory.getLog(SftpSaver.class);
 
+    private final ParsedUri uri;
     private final UserInfo userInfo;
-    private final String host;
-    private final int port;
     private byte[] passphrase;
     private HostKeyRepository fingerPrintAcceptor;
     private String privateKeyFile;
-    private String userName;
-    private String path;
 
     private Session session;
 
     public SftpLocation(URI basePath) throws IOException {
-        host = basePath.getHost();
-        port = basePath.getPort();
+        uri = ParsedUri.parse(basePath);
 
-        final String pass;
-        if (basePath.getRawUserInfo().indexOf(';') < 0) {
-            String[] userInfo = StringUtils.split(basePath.getRawUserInfo(), ':');
+        privateKeyFile = null;
+        String privateKeyPass = null;
+        byte[] fingerPrint = null;
+        boolean acceptAll = false;
 
-            userName = SaverUtils.decode(userInfo[0]);
-            pass = (userInfo.length == 1 || StringUtils.isEmpty(userInfo[1])) ? null : SaverUtils.decode(userInfo[1]);
-        } else {
-            String[] info = StringUtils.split(basePath.getRawUserInfo(), ';');
+        for (ParsedUri.Param param : uri.getParams()) {
+            String name = param.getName();
+            String value = param.getValue();
 
-            privateKeyFile = null;
-            String privateKeyPass = null;
-            byte[] fingerPrint = null;
-            boolean acceptAll = false;
-
-            String[] params = StringUtils.split(info[1], ',');
-
-            if (params.length > 0) {
-                String lastItem = params[params.length - 1];
-                int lastIndexOf = lastItem.lastIndexOf(':');
-                if (lastIndexOf >= 0) {
-                    // Possibly password is present
-                    params[params.length - 1] = lastItem.substring(0, lastIndexOf);
-                    pass = lastItem.substring(lastIndexOf + 1);
-                } else {
-                    pass = null;
-                }
-            } else {
-                pass = null;
-            }
-
-            for (String param : params) {
-                if ("accept-all".equalsIgnoreCase(param)) {
+            switch (name.toLowerCase()) {
+                case "accept-all":
                     acceptAll = true;
-                    continue;
-                }
-                final Matcher m = SaverUtils.PARAM_FETCHER.matcher(param);
-                if (!m.matches()) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("Invalid parameter definition '" + param + "' in uri " + basePath);
-                    }
-                    continue;
-                }
-
-                String name = m.group(1);
-                String value = SaverUtils.decode(m.group(2));
-
-                if ("fingerprint".equalsIgnoreCase(name)) {
+                    break;
+                case "fingerprint":
                     String hexString = StringUtils.remove(value, '-');
                     fingerPrint = new byte[16];
                     ByteBuffer bb = ByteBuffer.wrap(fingerPrint);
@@ -94,28 +56,28 @@ class SftpLocation implements ILocation {
                     bb.putInt((int) Long.parseLong(hexString.substring(8, 16), 16));
                     bb.putInt((int) Long.parseLong(hexString.substring(16, 24), 16));
                     bb.putInt((int) Long.parseLong(hexString.substring(24, 32), 16));
-                } else if ("private-key-file".equalsIgnoreCase(name)) {
+                    break;
+                case "private-key-file":
                     privateKeyFile = value;
-                } else if ("pk-passphrase".equalsIgnoreCase(name)) {
+                    break;
+                case "pk-passphrase":
                     privateKeyPass = value;
-                }
+                    break;
             }
+        }
 
-            if (privateKeyFile != null) {
-                passphrase = privateKeyPass != null ? privateKeyPass.getBytes(StandardCharsets.UTF_8) : null;
+        if (privateKeyFile != null) {
+            passphrase = privateKeyPass != null ? privateKeyPass.getBytes(StandardCharsets.UTF_8) : null;
+        }
+
+        if (acceptAll) {
+            fingerPrintAcceptor = new AcceptAllHostKeyRepository();
+        } else if (fingerPrint != null) {
+            try {
+                fingerPrintAcceptor = new FingerPrintAcceptor(fingerPrint);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IOException("Can't initialize fingerprint checker", e);
             }
-
-            if (acceptAll) {
-                fingerPrintAcceptor = new AcceptAllHostKeyRepository();
-            } else if (fingerPrint != null) {
-                try {
-                    fingerPrintAcceptor = new FingerPrintAcceptor(fingerPrint);
-                } catch (NoSuchAlgorithmException e) {
-                    throw new IOException("Can't initialize fingerprint checker", e);
-                }
-            }
-
-            userName = SaverUtils.decode(info[0]);
         }
 
         this.userInfo = new UserInfo() {
@@ -126,12 +88,12 @@ class SftpLocation implements ILocation {
 
             @Override
             public String getPassword() {
-                return pass;
+                return new String(uri.getPassword());
             }
 
             @Override
             public boolean promptPassword(String message) {
-                return pass != null;
+                return uri.getPassword() != null;
             }
 
             @Override
@@ -153,7 +115,6 @@ class SftpLocation implements ILocation {
             }
         };
 
-        path = basePath.getPath().substring(1);
     }
 
     @Override
@@ -164,7 +125,7 @@ class SftpLocation implements ILocation {
         if (StringUtils.startsWith(path, "/")) {
             file = path;
         } else {
-            file = FilenameUtils.separatorsToUnix(FilenameUtils.concat(this.path, path));
+            file = FilenameUtils.separatorsToUnix(FilenameUtils.concat(uri.getPath().substring(1), path));
         }
 
         if (StringUtils.isBlank(file)) {
@@ -204,7 +165,9 @@ class SftpLocation implements ILocation {
                 channel.disconnect();
             }
         } catch (JSchException e) {
-            throw new IOException("Failed to save data to sftp://" + host + (port == -1 ? "" : (":" + port)) + "/" + file, e);
+            throw new IOException(
+                    "Failed to save data to sftp://" + uri.getHost() + (uri.getPort() == -1 ? "" : (":" + uri.getPort())) + "/" + file, e
+            );
         }
     }
 
@@ -240,10 +203,10 @@ class SftpLocation implements ILocation {
                 jsch.setHostKeyRepository(fingerPrintAcceptor);
             }
 
-            if (port >= 0) {
-                session = jsch.getSession(userName, host, port);
+            if (uri.getPort() >= 0) {
+                session = jsch.getSession(uri.getUser(), uri.getHost(), uri.getPort());
             } else {
-                session = jsch.getSession(userName, host);
+                session = jsch.getSession(uri.getUser(), uri.getHost());
             }
             session.setUserInfo(userInfo);
 

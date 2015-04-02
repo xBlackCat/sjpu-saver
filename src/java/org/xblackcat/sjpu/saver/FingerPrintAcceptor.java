@@ -9,10 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 /**
-* 19.06.2014 09:40
-*
-* @author xBlackCat
-*/
+ * 19.06.2014 09:40
+ *
+ * @author xBlackCat
+ */
 class FingerPrintAcceptor implements HostKeyRepository {
 
     private final MessageDigest md5;

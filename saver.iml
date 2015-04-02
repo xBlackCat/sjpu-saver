@@ -45,7 +45,10 @@
           <root url="jar://$MODULE_DIR$/lib/commons-lang3-3.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://D:/Libraries/Java/apache/commons-lang3-3.1-src.zip!/commons-lang3-3.1-src/src/main/java" />
+          <root url="jar://D:/Libraries/Java/apache/commons-lang3-3.1-src.zip!/commons-lang3-3.1-src/src/test/java" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">

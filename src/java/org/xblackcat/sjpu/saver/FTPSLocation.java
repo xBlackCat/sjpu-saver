@@ -1,7 +1,9 @@
 package org.xblackcat.sjpu.saver;
 
-import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPSClient;
+import org.apache.commons.net.util.TrustManagerUtils;
 
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URI;
 
@@ -10,9 +12,40 @@ import java.net.URI;
  *
  * @author xBlackCat
  */
-class FTPSLocation extends AFtpLocation<FTPClient> {
-    FTPSLocation(URI target) throws IOException {
-        super(target, new FTPClient());
+class FtpsLocation extends AFtpLocation<FTPSClient> {
+    FtpsLocation(URI target) throws IOException {
+        super(target);
     }
 
+    @Override
+    protected FTPSClient buildClient(ParsedUri.Param[] params) {
+        X509TrustManager trustManager = TrustManagerUtils.getValidateServerCertificateTrustManager();
+
+        boolean isImplicit = false;
+        for (ParsedUri.Param param : params) {
+            String name = param.getName();
+
+            switch (name.toLowerCase()) {
+                case "accept-all":
+                    trustManager = TrustManagerUtils.getAcceptAllTrustManager();
+                    break;
+                case "validate":
+                    trustManager = TrustManagerUtils.getValidateServerCertificateTrustManager();
+                    break;
+                case "no-validate":
+                    trustManager = null;
+                    break;
+                case "implicit":
+                    isImplicit = true;
+                    break;
+                case "explicit":
+                    isImplicit = false;
+                    break;
+            }
+        }
+
+        FTPSClient ftpsClient = new FTPSClient(isImplicit);
+        ftpsClient.setTrustManager(trustManager);
+        return ftpsClient;
+    }
 }

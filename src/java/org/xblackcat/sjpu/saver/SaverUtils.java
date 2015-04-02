@@ -21,9 +21,12 @@ import java.util.regex.Pattern;
 class SaverUtils {
     private static final Log log = LogFactory.getLog(SaverUtils.class);
 
-    final static Pattern PARAM_FETCHER = Pattern.compile("([-\\w]*)=(.*)");
+    final static Pattern PARAM_FETCHER = Pattern.compile("([-\\w]*)(?:=(.*))?");
 
     static String decode(String s) throws UnsupportedEncodingException {
+        if (s == null) {
+            return null;
+        }
         return URLDecoder.decode(s, "UTF-8");
     }
 
@@ -113,6 +116,8 @@ class SaverUtils {
         switch (basePath.getScheme()) {
             case "file":
                 return new FileLocation(basePath);
+            case "ftps":
+                return new FtpsLocation(basePath);
             case "ftp":
                 return new FtpLocation(basePath);
             case "sftp":
