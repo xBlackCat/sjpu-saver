@@ -49,7 +49,7 @@ public class ParsedUri {
                 if (lastIndexOf >= 0) {
                     // Possibly password is present
                     paramStrs[paramStrs.length - 1] = lastItem.substring(0, lastIndexOf);
-                    pass = lastItem.substring(lastIndexOf + 1).toCharArray();
+                    pass = SaverUtils.decode(lastItem.substring(lastIndexOf + 1)).toCharArray();
                 } else {
                     pass = null;
                 }

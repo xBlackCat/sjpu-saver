@@ -3,12 +3,17 @@ package org.xblackcat.sjpu.saver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.net.ProtocolCommandEvent;
+import org.apache.commons.net.ProtocolCommandListener;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.xblackcat.sjpu.utils.FilenameUtils;
 import org.xblackcat.sjpu.utils.IOUtils;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 /**
@@ -17,7 +22,7 @@ import java.net.URI;
  * @author xBlackCat
  */
 public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
-    protected static final Log log = LogFactory.getLog(FtpLocation.class);
+    protected final Log log = LogFactory.getLog(getClass());
     private final F ftpClient;
     protected final ParsedUri uri;
 
@@ -25,6 +30,23 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
         uri = ParsedUri.parse(target);
 
         this.ftpClient = buildClient(uri.getParams());
+        ftpClient.addProtocolCommandListener(
+                new ProtocolCommandListener() {
+                    @Override
+                    public void protocolCommandSent(ProtocolCommandEvent event) {
+                        if (log.isTraceEnabled()) {
+                            log.trace("[SENT]: " + event.getCommand() + " (" + StringUtils.trimToEmpty(event.getMessage()) + ")");
+                        }
+                    }
+
+                    @Override
+                    public void protocolReplyReceived(ProtocolCommandEvent event) {
+                        if (log.isTraceEnabled()) {
+                            log.trace("[REPLY]: " + event.getReplyCode() + " (" + StringUtils.trimToEmpty(event.getMessage()) + ")");
+                        }
+                    }
+                }
+        );
     }
 
     protected abstract F buildClient(ParsedUri.Param[] params);
