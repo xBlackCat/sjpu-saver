@@ -35,7 +35,11 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
                     @Override
                     public void protocolCommandSent(ProtocolCommandEvent event) {
                         if (log.isTraceEnabled()) {
-                            log.trace("[SENT]: " + event.getCommand() + " (" + StringUtils.trimToEmpty(event.getMessage()) + ")");
+                            if ("PASS".equalsIgnoreCase(event.getCommand())) {
+                                log.trace("[SENT]: " + event.getCommand() + " (" + event.getCommand() + " ******* )");
+                            } else {
+                                log.trace("[SENT]: " + event.getCommand() + " (" + StringUtils.trimToEmpty(event.getMessage()) + ")");
+                            }
                         }
                     }
 
@@ -51,9 +55,12 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
 
     protected abstract F buildClient(ParsedUri.Param[] params);
 
+    protected void prepareToTransfer(F ftpClient) throws IOException {
+    }
+
     @Override
     public void save(String path, InputStream data, Compression compression) throws IOException {
-        validateConnect();
+        final F ftpClient = validateConnect();
 
         String file = FilenameUtils.concat(uri.getPath(), path);
 
@@ -62,6 +69,8 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
         if (!ftpClient.setFileType(FTP.BINARY_FILE_TYPE)) {
             throw new IOException("Can't set binary mode");
         }
+        prepareToTransfer(ftpClient);
+
         OutputStream os = ftpClient.storeFileStream(file);
 
         if (os == null) {
@@ -100,9 +109,9 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
         }
     }
 
-    protected void validateConnect() throws IOException {
+    protected F validateConnect() throws IOException {
         if (ftpClient.isConnected()) {
-            return;
+            return ftpClient;
         }
 
         if (uri.getPort() == -1) {
@@ -125,5 +134,6 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
                 );
             }
         }
+        return ftpClient;
     }
 }

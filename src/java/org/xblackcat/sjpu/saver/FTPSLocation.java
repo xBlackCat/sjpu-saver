@@ -48,4 +48,11 @@ class FtpsLocation extends AFtpLocation<FTPSClient> {
         ftpsClient.setTrustManager(trustManager);
         return ftpsClient;
     }
+
+    @Override
+    protected void prepareToTransfer(FTPSClient ftpClient) throws IOException {
+        super.prepareToTransfer(ftpClient);
+        ftpClient.execPBSZ(0);
+        ftpClient.execPROT("P");
+    }
 }
