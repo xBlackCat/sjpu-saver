@@ -54,7 +54,7 @@ public class ReusableSaver implements ISaver, AutoCloseable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         for (ILocation saver : openSavers.values()) {
             try {
                 saver.close();

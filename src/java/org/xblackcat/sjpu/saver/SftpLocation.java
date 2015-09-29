@@ -172,7 +172,7 @@ class SftpLocation implements ILocation {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (session != null && session.isConnected()) {
             session.disconnect();
         }
