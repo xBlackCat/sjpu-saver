@@ -56,19 +56,19 @@ import java.io.File;
  * Prefixes are matched as follows:
  * <pre>
  * Windows:
- * a\b\c.txt           --> ""          --> relative
- * \a\b\c.txt          --> "\"         --> current drive absolute
- * C:a\b\c.txt         --> "C:"        --> drive relative
- * C:\a\b\c.txt        --> "C:\"       --> absolute
- * \\server\a\b\c.txt  --> "\\server\" --> UNC
+ * a\b\c.txt           --&gt; ""          --&gt; relative
+ * \a\b\c.txt          --&gt; "\"         --&gt; current drive absolute
+ * C:a\b\c.txt         --&gt; "C:"        --&gt; drive relative
+ * C:\a\b\c.txt        --&gt; "C:\"       --&gt; absolute
+ * \\server\a\b\c.txt  --&gt; "\\server\" --&gt; UNC
  *
  * Unix:
- * a/b/c.txt           --> ""          --> relative
- * /a/b/c.txt          --> "/"         --> absolute
- * ~/a/b/c.txt         --> "~/"        --> current user
- * ~                   --> "~/"        --> current user (slash added)
- * ~user/a/b/c.txt     --> "~user/"    --> named user
- * ~user               --> "~user/"    --> named user (slash added)
+ * a/b/c.txt           --&gt; ""          --&gt; relative
+ * /a/b/c.txt          --&gt; "/"         --&gt; absolute
+ * ~/a/b/c.txt         --&gt; "~/"        --&gt; current user
+ * ~                   --&gt; "~/"        --&gt; current user (slash added)
+ * ~user/a/b/c.txt     --&gt; "~user/"    --&gt; named user
+ * ~user               --&gt; "~user/"    --&gt; named user (slash added)
  * </pre>
  * Both prefix styles are matched always, irrespective of the machine that you are
  * currently running on.
@@ -157,23 +157,23 @@ public class FilenameUtils {
      * The output will be the same on both Unix and Windows except
      * for the separator character.
      * <pre>
-     * /foo//               -->   /foo/
-     * /foo/./              -->   /foo/
-     * /foo/../bar          -->   /bar
-     * /foo/../bar/         -->   /bar/
-     * /foo/../bar/../baz   -->   /baz
-     * //foo//./bar         -->   /foo/bar
-     * /../                 -->   null
-     * ../foo               -->   null
-     * foo/bar/..           -->   foo/
-     * foo/../../bar        -->   null
-     * foo/../bar           -->   bar
-     * //server/foo/../bar  -->   //server/bar
-     * //server/../bar      -->   null
-     * C:\foo\..\bar        -->   C:\bar
-     * C:\..\bar            -->   null
-     * ~/foo/../bar/        -->   ~/bar/
-     * ~/../bar             -->   null
+     * /foo//               --&gt;   /foo/
+     * /foo/./              --&gt;   /foo/
+     * /foo/../bar          --&gt;   /bar
+     * /foo/../bar/         --&gt;   /bar/
+     * /foo/../bar/../baz   --&gt;   /baz
+     * //foo//./bar         --&gt;   /foo/bar
+     * /../                 --&gt;   null
+     * ../foo               --&gt;   null
+     * foo/bar/..           --&gt;   foo/
+     * foo/../../bar        --&gt;   null
+     * foo/../bar           --&gt;   bar
+     * //server/foo/../bar  --&gt;   //server/bar
+     * //server/../bar      --&gt;   null
+     * C:\foo\..\bar        --&gt;   C:\bar
+     * C:\..\bar            --&gt;   null
+     * ~/foo/../bar/        --&gt;   ~/bar/
+     * ~/../bar             --&gt;   null
      * </pre>
      * (Note the file separator returned will be correct for Windows/Unix)
      *
@@ -307,18 +307,18 @@ public class FilenameUtils {
      * The output will be the same on both Unix and Windows except
      * for the separator character.
      * <pre>
-     * /foo/ + bar          -->   /foo/bar
-     * /foo + bar           -->   /foo/bar
-     * /foo + /bar          -->   /bar
-     * /foo + C:/bar        -->   C:/bar
-     * /foo + C:bar         -->   C:bar (*)
-     * /foo/a/ + ../bar     -->   foo/bar
-     * /foo/ + ../../bar    -->   null
-     * /foo/ + /bar         -->   /bar
-     * /foo/.. + /bar       -->   /bar
-     * /foo + bar/c.txt     -->   /foo/bar/c.txt
-     * /foo/c.txt + bar     -->   /foo/c.txt/bar (!)
-     * /foo/c.txt + null    -->   /foo/c.txt (!)
+     * /foo/ + bar          --&gt;   /foo/bar
+     * /foo + bar           --&gt;   /foo/bar
+     * /foo + /bar          --&gt;   /bar
+     * /foo + C:/bar        --&gt;   C:/bar
+     * /foo + C:bar         --&gt;   C:bar (*)
+     * /foo/a/ + ../bar     --&gt;   foo/bar
+     * /foo/ + ../../bar    --&gt;   null
+     * /foo/ + /bar         --&gt;   /bar
+     * /foo/.. + /bar       --&gt;   /bar
+     * /foo + bar/c.txt     --&gt;   /foo/bar/c.txt
+     * /foo/c.txt + bar     --&gt;   /foo/c.txt/bar (!)
+     * /foo/c.txt + null    --&gt;   /foo/c.txt (!)
      * </pre>
      * (*) Note that the Windows relative drive prefix is unreliable when
      * used with this method.
@@ -379,19 +379,19 @@ public class FilenameUtils {
      * than the length of the input string.
      * <pre>
      * Windows:
-     * a\b\c.txt           --> ""          --> relative
-     * \a\b\c.txt          --> "\"         --> current drive absolute
-     * C:a\b\c.txt         --> "C:"        --> drive relative
-     * C:\a\b\c.txt        --> "C:\"       --> absolute
-     * \\server\a\b\c.txt  --> "\\server\" --> UNC
+     * a\b\c.txt           --&gt; ""          --&gt; relative
+     * \a\b\c.txt          --&gt; "\"         --&gt; current drive absolute
+     * C:a\b\c.txt         --&gt; "C:"        --&gt; drive relative
+     * C:\a\b\c.txt        --&gt; "C:\"       --&gt; absolute
+     * \\server\a\b\c.txt  --&gt; "\\server\" --&gt; UNC
      *
      * Unix:
-     * a/b/c.txt           --> ""          --> relative
-     * /a/b/c.txt          --> "/"         --> absolute
-     * ~/a/b/c.txt         --> "~/"        --> current user
-     * ~                   --> "~/"        --> current user (slash added)
-     * ~user/a/b/c.txt     --> "~user/"    --> named user
-     * ~user               --> "~user/"    --> named user (slash added)
+     * a/b/c.txt           --&gt; ""          --&gt; relative
+     * /a/b/c.txt          --&gt; "/"         --&gt; absolute
+     * ~/a/b/c.txt         --&gt; "~/"        --&gt; current user
+     * ~                   --&gt; "~/"        --&gt; current user (slash added)
+     * ~user/a/b/c.txt     --&gt; "~user/"    --&gt; named user
+     * ~user               --&gt; "~user/"    --&gt; named user (slash added)
      * </pre>
      * <p>
      * The output will be the same irrespective of the machine that the code is running on.

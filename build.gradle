@@ -1,0 +1,88 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = new File('build.txt').getText('UTF-8')
+def outputBaseName = 'sjpu-saver'
+def projectTitle = 'SJPU Saver'
+ext.commonManifest = manifest {
+    attributes(
+            "Implementation-Title": projectTitle,
+            "Implementation-Version": version
+    )
+}
+
+
+jar {
+    baseName = outputBaseName
+    manifest = project.manifest {
+        from commonManifest
+    }
+}
+
+defaultTasks 'clean', 'buildAll'
+
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.5+'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.+'
+    compile group: 'commons-logging', name: 'commons-logging', version: '1.+'
+    compile group: 'commons-net', name: 'commons-net', version: '3.+'
+    compile group: 'com.jcraft', name: 'jsch', version: '0.1.+'
+}
+
+task sourcesJar(type: Jar) {
+    baseName = outputBaseName
+    from sourceSets.main.allJava
+    classifier = 'sources'
+    manifest = project.manifest {
+        from commonManifest
+    }
+}
+
+javadoc {
+    title = projectTitle
+}
+
+task docsJar(dependsOn: javadoc, type: Jar) {
+    baseName = outputBaseName
+    from javadoc.outputs.files
+    classifier = 'docs'
+    manifest = project.manifest {
+        from commonManifest
+    }
+}
+
+task sourcesZip(type: Zip) {
+    baseName = outputBaseName
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task binZip(dependsOn: 'jar', type: Zip) {
+    baseName = outputBaseName
+    from jar.outputs.files
+    into('dep') {
+        from configurations.compile
+    }
+    classifier = 'bin'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/java'
+        }
+    }
+}
+
+task buildAll(dependsOn: ['build', 'sourcesJar', 'binZip', 'sourcesZip', 'docsJar']) {}

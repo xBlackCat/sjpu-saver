@@ -18,6 +18,7 @@ public final class IOUtils {
      *
      * @param input  the InputStream to copy
      * @param output the target Stream
+     * @return amount of copied bytes
      * @throws IOException if an error occurs
      */
     public static long copy(final InputStream input, final OutputStream output) throws IOException {
@@ -30,6 +31,7 @@ public final class IOUtils {
      * @param input      the InputStream to copy
      * @param output     the target Stream
      * @param buffersize the buffer size to use
+     * @return amount of copied bytes
      * @throws IOException if an error occurs
      */
     public static long copy(final InputStream input, final OutputStream output, int buffersize) throws IOException {
