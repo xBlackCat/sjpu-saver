@@ -14,13 +14,6 @@ ext.commonManifest = manifest {
 }
 
 
-jar {
-    baseName = outputBaseName
-    manifest = project.manifest {
-        from commonManifest
-    }
-}
-
 defaultTasks 'clean', 'buildAll'
 
 compileJava.options.encoding = 'UTF-8'
@@ -33,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.5+'
+    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.5+', transitive: false
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.+'
     compile group: 'commons-logging', name: 'commons-logging', version: '1.+'
     compile group: 'commons-net', name: 'commons-net', version: '3.+'
@@ -45,6 +38,17 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
     classifier = 'sources'
     manifest = project.manifest {
+        from commonManifest
+    }
+}
+
+jar {
+    baseName = outputBaseName
+    manifest {
+        attributes(
+                "Main-Class": 'org.xblackcat.sjpu.saver.SaverUtils',
+                "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+        )
         from commonManifest
     }
 }
@@ -64,7 +68,15 @@ task docsJar(dependsOn: javadoc, type: Jar) {
 
 task sourcesZip(type: Zip) {
     baseName = outputBaseName
-    from sourceSets.main.allJava
+    from project.projectDir
+    include 'src/**'
+    include 'test/**'
+    include 'build.*'
+    include 'LICENSE'
+    into('lib') {
+        from configurations.compile
+        include '*'
+    }
     classifier = 'sources'
 }
 
