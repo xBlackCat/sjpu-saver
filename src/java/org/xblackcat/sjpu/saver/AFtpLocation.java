@@ -53,6 +53,26 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
         );
     }
 
+    private static void ensurePathExists(FTPClient ftp, String path) throws IOException {
+        if (path == null) {
+            throw new NullPointerException("Empty or null path");
+        }
+
+        if (path.length() == 0 || "/".equals(path)) {
+            return;
+        }
+
+        if (ftp.changeWorkingDirectory(path)) {
+            return;
+        }
+
+        ensurePathExists(ftp, path.substring(0, path.lastIndexOf('/')));
+
+        if (!ftp.makeDirectory(path)) {
+            throw new IOException("Can't create FTP folder " + path);
+        }
+    }
+
     protected abstract F buildClient(ParsedUri.Param[] params);
 
     protected void prepareToTransfer(F ftpClient) throws IOException {
@@ -64,7 +84,7 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
 
         String file = FilenameUtils.concat(uri.getPath(), path);
 
-        SaverUtils.ensurePathExists(ftpClient, StringUtils.substringBeforeLast(file, "/"));
+        ensurePathExists(ftpClient, StringUtils.substringBeforeLast(file, "/"));
 
         if (!ftpClient.setFileType(FTP.BINARY_FILE_TYPE)) {
             throw new IOException("Can't set binary mode");

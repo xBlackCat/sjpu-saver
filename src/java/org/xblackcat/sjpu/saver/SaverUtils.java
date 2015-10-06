@@ -1,17 +1,18 @@
 package org.xblackcat.sjpu.saver;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTPClient;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.util.regex.Pattern;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 19.06.2014 10:18
@@ -21,62 +22,28 @@ import java.util.regex.Pattern;
 class SaverUtils {
     private static final Log log = LogFactory.getLog(SaverUtils.class);
 
-    final static Pattern PARAM_FETCHER = Pattern.compile("([-\\w]*)(?:=(.*))?");
+    private static final Map<String, Constructor<ILocation>> LOCATIONS;
 
-    static String decode(String s) throws UnsupportedEncodingException {
-        if (s == null) {
-            return null;
-        }
-        return URLDecoder.decode(s, "UTF-8");
+    static {
+        final Map<String, Constructor<ILocation>> map = new HashMap<>();
+        addLocator(map, "file", "org.xblackcat.sjpu.saver.FileLocation");
+        addLocator(map, "ftps", "org.xblackcat.sjpu.saver.FtpsLocation");
+        addLocator(map, "ftp", "org.xblackcat.sjpu.saver.FtpLocation");
+        addLocator(map, "sftp", "org.xblackcat.sjpu.saver.SftpLocation");
+
+        LOCATIONS = Collections.unmodifiableMap(map);
     }
 
-    protected static void mkdirs(ChannelSftp channel, String path) throws SftpException {
-        int i = path.lastIndexOf('/');
-        if (i >= 0) {
-            String parentPath = path.substring(0, i);
-            boolean isDir = isDir(channel, parentPath);
-            if (!isDir) {
-                mkdirs(channel, parentPath);
-            }
-        }
-
-        channel.mkdir(path);
-    }
-
-    protected static boolean isDir(ChannelSftp channel, String parentPath) {
+    private static void addLocator(Map<String, Constructor<ILocation>> map, String proto, String className) {
+        Constructor<ILocation> result;
         try {
-            if (log.isTraceEnabled()) {
-                log.trace("Check parent folder for existence: " + parentPath);
-            }
-            SftpATTRS stat = channel.stat(parentPath);
-            return stat != null && stat.isDir();
-        } catch (SftpException e) {
-            // Not found
-            if (log.isTraceEnabled()) {
-                log.trace("Folder " + parentPath + " is not exists.");
-            }
-            return false;
-        }
-
-    }
-
-    static void ensurePathExists(FTPClient ftp, String path) throws IOException {
-        if (path == null) {
-            throw new NullPointerException("Empty or null path");
-        }
-
-        if (path.length() == 0 || "/".equals(path)) {
-            return;
-        }
-
-        if (ftp.changeWorkingDirectory(path)) {
-            return;
-        }
-
-        ensurePathExists(ftp, path.substring(0, path.lastIndexOf('/')));
-
-        if (!ftp.makeDirectory(path)) {
-            throw new IOException("Can't create FTP folder " + path);
+            @SuppressWarnings("unchecked")
+            final Class<ILocation> aClass = (Class<ILocation>) Class.forName(className);
+            result = aClass.getConstructor(URI.class);
+            map.put(proto, result);
+            log.trace("Protocol " + proto + " is initialized");
+        } catch (ReflectiveOperationException | LinkageError e) {
+            log.trace("Class " + className + " can't be initialized. " + proto + " protocol will be disabled");
         }
     }
 
@@ -99,7 +66,7 @@ class SaverUtils {
         System.out.println("Upload file '" + fileName + "' to location " + targetUri);
 
         URI target = URI.create(targetUri);
-        try (IUploadLocation saver = open(target)) {
+        try (IUploadLocation saver = new Uploader(openLocation(target))) {
             try (InputStream is = new BufferedInputStream(new FileInputStream(fileName))) {
                 saver.upload(is, compression);
             }
@@ -108,22 +75,16 @@ class SaverUtils {
         }
     }
 
-    public static IUploadLocation open(URI basePath) throws IOException {
-        return new Uploader(openLocation(basePath));
-    }
-
     static ILocation openLocation(URI basePath) throws IOException {
-        switch (basePath.getScheme()) {
-            case "file":
-                return new FileLocation(basePath);
-            case "ftps":
-                return new FtpsLocation(basePath);
-            case "ftp":
-                return new FtpLocation(basePath);
-            case "sftp":
-                return new SftpLocation(basePath);
-            default:
-                throw new MalformedURLException("unknown protocol: " + basePath.getScheme());
+        final Constructor<ILocation> locationConstructor = LOCATIONS.get(basePath.getScheme());
+        if (locationConstructor == null) {
+            throw new MalformedURLException("unknown protocol: " + basePath.getScheme());
+        }
+
+        try {
+            return locationConstructor.newInstance(basePath);
+        } catch (ReflectiveOperationException e) {
+            throw new IOException("Failed to initialize locator for scheme " + basePath.getScheme(), e);
         }
     }
 }

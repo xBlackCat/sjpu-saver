@@ -146,8 +146,8 @@ class SftpLocation implements ILocation {
                     int i = file.lastIndexOf('/');
                     if (i >= 0) {
                         String parent = file.substring(0, i);
-                        if (!SaverUtils.isDir(c, parent)) {
-                            SaverUtils.mkdirs(c, parent);
+                        if (!isDir(c, parent)) {
+                            mkdirs(c, parent);
                         }
                     }
 
@@ -214,6 +214,36 @@ class SftpLocation implements ILocation {
         } catch (JSchException e) {
             throw new IOException("Failed to establish a SFTP session", e);
         }
+    }
+
+    private static void mkdirs(ChannelSftp channel, String path) throws SftpException {
+        int i = path.lastIndexOf('/');
+        if (i >= 0) {
+            String parentPath = path.substring(0, i);
+            boolean isDir = isDir(channel, parentPath);
+            if (!isDir) {
+                mkdirs(channel, parentPath);
+            }
+        }
+
+        channel.mkdir(path);
+    }
+
+    private static boolean isDir(ChannelSftp channel, String parentPath) {
+        try {
+            if (log.isTraceEnabled()) {
+                log.trace("Check parent folder for existence: " + parentPath);
+            }
+            SftpATTRS stat = channel.stat(parentPath);
+            return stat != null && stat.isDir();
+        } catch (SftpException e) {
+            // Not found
+            if (log.isTraceEnabled()) {
+                log.trace("Folder " + parentPath + " is not exists.");
+            }
+            return false;
+        }
+
     }
 
 }

@@ -6,9 +6,11 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 02.04.2015 12:10
@@ -16,6 +18,7 @@ import java.util.regex.Matcher;
  * @author xBlackCat
  */
 public class ParsedUri {
+    private final static Pattern PARAM_FETCHER = Pattern.compile("([-\\w]*)(?:=(.*))?");
     private static final Log log = LogFactory.getLog(ParsedUri.class);
 
     private final String host;
@@ -36,8 +39,8 @@ public class ParsedUri {
         if (uri.getRawUserInfo().indexOf(';') < 0) {
             String[] userInfo = StringUtils.split(uri.getRawUserInfo(), ':');
 
-            userName = SaverUtils.decode(userInfo[0]);
-            pass = (userInfo.length == 1 || StringUtils.isEmpty(userInfo[1])) ? null : SaverUtils.decode(userInfo[1]).toCharArray();
+            userName = decode(userInfo[0]);
+            pass = (userInfo.length == 1 || StringUtils.isEmpty(userInfo[1])) ? null : decode(userInfo[1]).toCharArray();
         } else {
             String[] info = StringUtils.split(uri.getRawUserInfo(), ';');
 
@@ -49,13 +52,13 @@ public class ParsedUri {
                 if (lastIndexOf >= 0) {
                     // Possibly password is present
                     paramStrs[paramStrs.length - 1] = lastItem.substring(0, lastIndexOf);
-                    pass = SaverUtils.decode(lastItem.substring(lastIndexOf + 1)).toCharArray();
+                    pass = decode(lastItem.substring(lastIndexOf + 1)).toCharArray();
                 } else {
                     pass = null;
                 }
 
                 for (String param : paramStrs) {
-                    final Matcher m = SaverUtils.PARAM_FETCHER.matcher(param);
+                    final Matcher m = PARAM_FETCHER.matcher(param);
                     if (!m.matches()) {
                         if (log.isWarnEnabled()) {
                             log.warn("Invalid parameter definition '" + param + "' in uri.");
@@ -63,16 +66,23 @@ public class ParsedUri {
                         continue;
                     }
 
-                    params.add(new Param(m.group(1), SaverUtils.decode(m.group(2))));
+                    params.add(new Param(m.group(1), decode(m.group(2))));
                 }
             } else {
                 pass = null;
             }
 
-            userName = SaverUtils.decode(info[0]);
+            userName = decode(info[0]);
         }
 
         return new ParsedUri(host, port, path, userName, pass, params.toArray(new Param[params.size()]));
+    }
+
+    private static String decode(String s) throws UnsupportedEncodingException {
+        if (s == null) {
+            return null;
+        }
+        return URLDecoder.decode(s, "UTF-8");
     }
 
     public ParsedUri(String host, int port, String path, String user, char[] password, Param... params) {
