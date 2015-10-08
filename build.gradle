@@ -1,18 +1,18 @@
 apply plugin: 'java'
+apply plugin: 'maven'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = new File('build.txt').getText('UTF-8')
-def outputBaseName = 'sjpu-saver'
+group = 'org.xblackcat'
 def projectTitle = 'SJPU Saver'
+version = new File('build.txt').getText('UTF-8')
 ext.commonManifest = manifest {
     attributes(
             "Implementation-Title": projectTitle,
             "Implementation-Version": version
     )
 }
-
 
 defaultTasks 'clean', 'buildAll'
 
@@ -34,7 +34,6 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    baseName = outputBaseName
     from sourceSets.main.allJava
     classifier = 'sources'
     manifest = project.manifest {
@@ -43,7 +42,6 @@ task sourcesJar(type: Jar) {
 }
 
 jar {
-    baseName = outputBaseName
     manifest {
         attributes(
                 "Main-Class": 'org.xblackcat.sjpu.saver.SaverUtils',
@@ -58,7 +56,6 @@ javadoc {
 }
 
 task docsJar(dependsOn: javadoc, type: Jar) {
-    baseName = outputBaseName
     from javadoc.outputs.files
     classifier = 'docs'
     manifest = project.manifest {
@@ -67,21 +64,19 @@ task docsJar(dependsOn: javadoc, type: Jar) {
 }
 
 task sourcesZip(type: Zip) {
-    baseName = outputBaseName
     from project.projectDir
     include 'src/**'
     include 'test/**'
     include 'build.*'
     include 'LICENSE'
     into('lib') {
-        from configurations.compile
+        from configurations.testCompile
         include '*'
     }
     classifier = 'sources'
 }
 
 task binZip(dependsOn: 'jar', type: Zip) {
-    baseName = outputBaseName
     from jar.outputs.files
     into('dep') {
         from configurations.compile
@@ -93,6 +88,16 @@ sourceSets {
     main {
         java {
             srcDir 'src/java'
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: mavenCentralUrl) {
+                authentication(userName: mavenCentralUser, password: mavenCentralPassword)
+            }
         }
     }
 }
