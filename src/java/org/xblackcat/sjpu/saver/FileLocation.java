@@ -14,12 +14,12 @@ import java.nio.file.NotDirectoryException;
  *
  * @author xBlackCat
  */
-class FileLocation implements ILocation {
+public class FileLocation implements ILocation {
     private static final Log log = LogFactory.getLog(FileLocation.class);
 
     private File base;
 
-    FileLocation(URI uri) throws NotDirectoryException, IllegalArgumentException {
+    public FileLocation(URI uri) throws NotDirectoryException, IllegalArgumentException {
         this.base = new File(uri);
 
         if (base.exists() && !base.isDirectory()) {

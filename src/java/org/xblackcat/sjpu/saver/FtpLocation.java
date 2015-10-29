@@ -10,8 +10,8 @@ import java.net.URI;
  *
  * @author xBlackCat
  */
-class FtpLocation extends AFtpLocation<FTPClient> {
-    FtpLocation(URI target) throws IOException {
+public class FtpLocation extends AFtpLocation<FTPClient> {
+    public FtpLocation(URI target) throws IOException {
         super(target);
     }
 

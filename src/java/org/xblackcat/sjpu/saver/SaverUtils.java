@@ -39,11 +39,11 @@ class SaverUtils {
         try {
             @SuppressWarnings("unchecked")
             final Class<ILocation> aClass = (Class<ILocation>) Class.forName(className);
-            result = aClass.getConstructor(URI.class);
+            result = aClass.getDeclaredConstructor(URI.class);
             map.put(proto, result);
             log.trace("Protocol " + proto + " is initialized");
         } catch (ReflectiveOperationException | LinkageError e) {
-            log.trace("Class " + className + " can't be initialized. " + proto + " protocol will be disabled");
+            log.trace("Class " + className + " can't be initialized. " + proto + " protocol will be disabled", e);
         }
     }
 

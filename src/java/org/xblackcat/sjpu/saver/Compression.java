@@ -145,7 +145,7 @@ public enum Compression {
             constructor = aClass.getConstructor(args);
         } catch (ReflectiveOperationException | LinkageError e) {
             constructor = null;
-            log.warn("Can't initialize compressor " + className, e);
+            log.trace("Can't initialize compressor " + className, e);
         }
 
         return constructor;
