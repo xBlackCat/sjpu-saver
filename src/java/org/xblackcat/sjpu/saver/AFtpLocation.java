@@ -9,6 +9,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.xblackcat.sjpu.utils.FilenameUtils;
 import org.xblackcat.sjpu.utils.IOUtils;
+import org.xblackcat.sjpu.utils.ParsedUri;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

@@ -1,6 +1,7 @@
 package org.xblackcat.sjpu.saver;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.xblackcat.sjpu.utils.ParsedUri;
 
 import java.io.IOException;
 import java.net.URI;

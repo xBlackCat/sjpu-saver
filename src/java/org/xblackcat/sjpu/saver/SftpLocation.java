@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.xblackcat.sjpu.utils.FilenameUtils;
 import org.xblackcat.sjpu.utils.IOUtils;
+import org.xblackcat.sjpu.utils.ParsedUri;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

@@ -2,6 +2,7 @@ package org.xblackcat.sjpu.saver;
 
 import org.apache.commons.net.ftp.FTPSClient;
 import org.apache.commons.net.util.TrustManagerUtils;
+import org.xblackcat.sjpu.utils.ParsedUri;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -12,13 +13,13 @@ import java.net.URI;
  *
  * @author xBlackCat
  */
-class FtpsLocation extends AFtpLocation<FTPSClient> {
-    FtpsLocation(URI target) throws IOException {
+public class FtpsLocation extends AFtpLocation<FTPSClient> {
+    public FtpsLocation(URI target) throws IOException {
         super(target);
     }
 
     @Override
-    protected FTPSClient buildClient(ParsedUri.Param[] params) {
+     protected FTPSClient buildClient(ParsedUri.Param[] params) {
         X509TrustManager trustManager = TrustManagerUtils.getValidateServerCertificateTrustManager();
 
         boolean isImplicit = false;
