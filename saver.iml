@@ -13,7 +13,19 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/commons-logging-1.1.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/commons-net-3.3.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://D:/Libraries/Java/apache/commons-net-3.3-src.zip!/commons-net-3.3-src/src/main/java" />
+          <root url="jar://D:/Libraries/Java/apache/commons-net-3.3-src.zip!/commons-net-3.3-src/src/test/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/commons-compress-1.10.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -22,48 +34,28 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jsch-0.1.49.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/commons-lang3-3.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.ideaLibSources/jsch-0.1.49-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/commons-compress-1.5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/commons-logging-1.2.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://D:/Libraries/Java/apache/commons-compress-1.5-src.zip!/commons-compress-1.5-src/src/main/java" />
-          <root url="jar://D:/Libraries/Java/apache/commons-compress-1.5-src.zip!/commons-compress-1.5-src/src/test/java" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/commons-lang3-3.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/jsch-0.1.53.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://D:/Libraries/Java/apache/commons-lang3-3.1-src.zip!/commons-lang3-3.1-src/src/main/java" />
-          <root url="jar://D:/Libraries/Java/apache/commons-lang3-3.1-src.zip!/commons-lang3-3.1-src/src/test/java" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/commons-net-3.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://D:/Libraries/Java/apache/commons-net-3.3-src.zip!/commons-net-3.3-src/src/main/java" />
-          <root url="jar://D:/Libraries/Java/apache/commons-net-3.3-src.zip!/commons-net-3.3-src/src/test/java" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
