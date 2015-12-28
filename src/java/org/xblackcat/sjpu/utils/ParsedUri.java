@@ -36,13 +36,17 @@ public class ParsedUri {
         final char[] pass;
         final List<Param> params = new ArrayList<>();
 
-        if (uri.getRawUserInfo().indexOf(';') < 0) {
-            String[] userInfo = StringUtils.split(uri.getRawUserInfo(), ':');
+        final String rawUserInfo = uri.getRawUserInfo();
+        if (rawUserInfo == null) {
+            userName = null;
+            pass = null;
+        } else if (rawUserInfo.indexOf(';') < 0) {
+            String[] userInfo = StringUtils.split(rawUserInfo, ':');
 
             userName = decode(userInfo[0]);
             pass = (userInfo.length == 1 || StringUtils.isEmpty(userInfo[1])) ? null : decode(userInfo[1]).toCharArray();
         } else {
-            String[] info = StringUtils.split(uri.getRawUserInfo(), ';');
+            String[] info = StringUtils.split(rawUserInfo, ';');
 
             final String[] paramStrs = StringUtils.split(info[1], ',');
 
