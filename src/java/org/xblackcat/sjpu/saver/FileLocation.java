@@ -42,7 +42,7 @@ public class FileLocation implements ILocation {
         if (!parentFile.isDirectory()) {
             log.trace("Create parent folder(s): " + parentFile.getAbsolutePath());
 
-            if (!parentFile.mkdirs()) {
+            if (!parentFile.mkdirs() && !parentFile.isDirectory()) {
                 throw new IOException("Can not create destination folder: " + parentFile.getAbsolutePath());
             }
         }
