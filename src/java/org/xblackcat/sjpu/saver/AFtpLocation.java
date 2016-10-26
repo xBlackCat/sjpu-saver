@@ -22,12 +22,12 @@ import java.net.URI;
  *
  * @author xBlackCat
  */
-public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
+abstract class AFtpLocation<F extends FTPClient> implements ILocation {
     protected final Log log = LogFactory.getLog(getClass());
     private final F ftpClient;
     protected final ParsedUri uri;
 
-    public AFtpLocation(URI target) throws IOException {
+    protected AFtpLocation(URI target) throws IOException {
         uri = ParsedUri.parse(target);
 
         this.ftpClient = buildClient(uri.getParams());
@@ -92,27 +92,22 @@ public abstract class AFtpLocation<F extends FTPClient> implements ILocation {
         }
         prepareToTransfer(ftpClient);
 
-        OutputStream os = ftpClient.storeFileStream(file);
+        try (OutputStream os = ftpClient.storeFileStream(file)) {
+            if (os == null) {
+                throw new IOException(
+                        "Can not upload file " + file + " to server. Reply: " + ftpClient.getReplyString() +
+                                " (" + ftpClient.getReplyCode() + ")"
+                );
+            }
 
-        if (os == null) {
-            throw new IOException(
-                    "Can not upload file " + file + " to server. Reply: " + ftpClient.getReplyString() +
-                            " (" + ftpClient.getReplyCode() + ")"
-            );
-        }
+            if (log.isTraceEnabled()) {
+                log.trace("Writing data...");
+            }
 
-        if (log.isTraceEnabled()) {
-            log.trace("Writing data...");
-        }
-
-        try {
-            os = compression.cover(new BufferedOutputStream(os));
-
-            IOUtils.copy(data, os);
-
-            os.flush();
-        } finally {
-            os.close();
+            try (OutputStream compressed = compression.cover(new BufferedOutputStream(os))) {
+                IOUtils.copy(data, compressed);
+                compressed.flush();
+            }
         }
         if (!ftpClient.completePendingCommand()) {
             throw new IOException("Can't save data to ftp://" + uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort()) + file);

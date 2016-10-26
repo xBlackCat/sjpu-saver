@@ -9,10 +9,10 @@ import java.net.URI;
  *
  * @author xBlackCat
  */
-public interface ISaver {
-    void save(
-            URI target,
-            InputStream data,
-            Compression compression
-    ) throws IOException;
+public interface ISaver extends AutoCloseable {
+    void save(URI target, InputStream data, Compression compression) throws IOException;
+
+    @Override
+    default void close() {
+    }
 }

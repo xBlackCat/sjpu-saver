@@ -23,7 +23,7 @@ import java.security.NoSuchAlgorithmException;
  * @author xBlackCat
  */
 public class SftpLocation implements ILocation {
-    private static final Log log = LogFactory.getLog(SftpSaver.class);
+    private static final Log log = LogFactory.getLog(SftpLocation.class);
 
     private final ParsedUri uri;
     private final UserInfo userInfo;
@@ -246,5 +246,4 @@ public class SftpLocation implements ILocation {
         }
 
     }
-
 }

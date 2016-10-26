@@ -10,9 +10,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 19.06.2014 10:18
@@ -22,30 +19,8 @@ import java.util.Map;
 class SaverUtils {
     private static final Log log = LogFactory.getLog(SaverUtils.class);
 
-    private static final Map<String, Constructor<ILocation>> LOCATIONS;
-
-    static {
-        final Map<String, Constructor<ILocation>> map = new HashMap<>();
-        addLocator(map, "file", "org.xblackcat.sjpu.saver.FileLocation");
-        addLocator(map, "ftps", "org.xblackcat.sjpu.saver.FtpsLocation");
-        addLocator(map, "ftp", "org.xblackcat.sjpu.saver.FtpLocation");
-        addLocator(map, "sftp", "org.xblackcat.sjpu.saver.SftpLocation");
-
-        LOCATIONS = Collections.unmodifiableMap(map);
-    }
-
-    private static void addLocator(Map<String, Constructor<ILocation>> map, String proto, String className) {
-        Constructor<ILocation> result;
-        try {
-            @SuppressWarnings("unchecked")
-            final Class<ILocation> aClass = (Class<ILocation>) Class.forName(className);
-            result = aClass.getDeclaredConstructor(URI.class);
-            map.put(proto, result);
-            log.trace("Protocol " + proto + " is initialized");
-        } catch (ReflectiveOperationException | LinkageError e) {
-            log.trace("Class " + className + " can't be initialized. " + proto + " protocol will be disabled", e);
-        }
-    }
+    private static final String SCHEMA_PACKAGE = "org.xblackcat.sjpu.saver.";
+    private static final String CLASS_SUFFIX = "Location";
 
     public static void main(String[] args) {
         if (args == null || args.length < 2) {
@@ -66,9 +41,9 @@ class SaverUtils {
         System.out.println("Upload file '" + fileName + "' to location " + targetUri);
 
         URI target = URI.create(targetUri);
-        try (IUploadLocation saver = new Uploader(openLocation(target))) {
+        try (ISaver saver = new Saver(SaverUtils::openLocation)) {
             try (InputStream is = new BufferedInputStream(new FileInputStream(fileName))) {
-                saver.upload(is, compression);
+                saver.save(target, is, compression);
             }
         } catch (IOException e) {
             e.printStackTrace(System.err);
@@ -76,15 +51,37 @@ class SaverUtils {
     }
 
     static ILocation openLocation(URI basePath) throws IOException {
-        final Constructor<ILocation> locationConstructor = LOCATIONS.get(basePath.getScheme());
-        if (locationConstructor == null) {
-            throw new MalformedURLException("unknown protocol: " + basePath.getScheme());
+        final String proto = basePath.getScheme();
+        final Constructor<?> locationConstructor;
+        try {
+            final String className = buildClassName(proto);
+            final Class<?> aClass = Class.forName(className);
+            if (!ILocation.class.isAssignableFrom(aClass)) {
+                throw new IOException("Protocol saver implementation class should implements " + ILocation.class);
+            }
+            locationConstructor = aClass.getDeclaredConstructor(URI.class);
+            if (log.isTraceEnabled()) {
+                log.trace("Protocol " + proto + " is initialized");
+            }
+        } catch (ReflectiveOperationException | LinkageError e1) {
+            log.trace("Class for protocol implementation can't be initialized. " + proto + " protocol will be disabled", e1);
+            throw new MalformedURLException("Protocol is not supported: " + proto);
         }
 
         try {
-            return locationConstructor.newInstance(basePath);
+            return (ILocation) locationConstructor.newInstance(basePath);
         } catch (ReflectiveOperationException e) {
-            throw new IOException("Failed to initialize locator for scheme " + basePath.getScheme(), e);
+            throw new IOException("Failed to initialize locator for scheme " + proto, e);
         }
+    }
+
+    private static String buildClassName(String proto) {
+        final StringBuilder builder = new StringBuilder(SCHEMA_PACKAGE);
+        builder.append(Character.toUpperCase(proto.charAt(0)));
+        for (int i = 1; i < proto.length(); i++) {
+            builder.append(Character.toLowerCase(proto.charAt(i)));
+        }
+        builder.append(CLASS_SUFFIX);
+        return builder.toString();
     }
 }
