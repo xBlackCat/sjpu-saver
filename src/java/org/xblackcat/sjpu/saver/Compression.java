@@ -50,7 +50,7 @@ public enum Compression {
             }
 
             throw new IOException(
-                    "XZ engine is not initialized. Check commons-compress.jar and xz.jar(org.tukaani.xz) libraries are in class path"
+                    "XZ engine is not initialized. Check if commons-compress.jar and xz.jar(org.tukaani.xz) libraries are in the runtime classpath"
             );
         }
 
@@ -65,7 +65,7 @@ public enum Compression {
             }
 
             throw new IOException(
-                    "XZ engine is not initialized. Check commons-compress.jar and xz.jar(org.tukaani.xz) libraries are in class path"
+                    "XZ engine is not initialized. Check if commons-compress.jar and xz.jar(org.tukaani.xz) libraries are in the runtime classpath"
             );
         }
     },
@@ -80,7 +80,7 @@ public enum Compression {
                 throw new IOException("Can't build BZip2 compressor", e);
             }
 
-            throw new IOException("BZip2 engine is not initialized. Check commons-compress.jar library is in class path");
+            throw new IOException("BZip2 engine is not initialized. Check if a commons-compress.jar library is in the runtime classpath");
         }
 
         @Override
@@ -93,7 +93,7 @@ public enum Compression {
                 throw new IOException("Can't build BZip2 decompressor", e);
             }
 
-            throw new IOException("BZip2 engine is not initialized. Check commons-compress.jar library is in class path");
+            throw new IOException("BZip2 engine is not initialized. Check if a commons-compress.jar library is in the runtime classpath");
         }
     };
 
