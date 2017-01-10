@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -80,10 +79,10 @@ public class ReusableSaver implements ISaver {
 
     @Override
     public void close() {
-        final Collection<ILocation> locations;
+        final ILocation[] locations;
         lock.lock();
         try {
-            locations = openSavers.values();
+            locations = openSavers.values().stream().toArray(ILocation[]::new);
             openSavers.clear();
         } finally {
             lock.unlock();
