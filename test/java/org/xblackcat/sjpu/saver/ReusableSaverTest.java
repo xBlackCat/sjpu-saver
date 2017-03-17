@@ -13,9 +13,9 @@ import java.net.URI;
 public class ReusableSaverTest {
     @Test
     public void windowsPathDetector() {
-        Assert.assertFalse(ReusableSaver.isWindowsRootPath(URI.create("file:///test/path").getPath()));
-        Assert.assertTrue(ReusableSaver.isWindowsRootPath(URI.create("file:///R:/test/path").getPath()));
-        Assert.assertTrue(ReusableSaver.isWindowsRootPath(URI.create("file:///R:mesa").getPath()));
+        Assert.assertFalse(SaverUtils.isWindowsRootPath(URI.create("file:///test/path").getPath()));
+        Assert.assertTrue(SaverUtils.isWindowsRootPath(URI.create("file:///R:/test/path").getPath()));
+        Assert.assertTrue(SaverUtils.isWindowsRootPath(URI.create("file:///R:mesa").getPath()));
 
         Assert.assertTrue(true);
     }

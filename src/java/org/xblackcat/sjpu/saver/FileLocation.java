@@ -34,7 +34,12 @@ class FileLocation implements ILocation {
 
     @Override
     public void save(String path, InputStream data, Compression compression) throws IOException {
-        Path destination = base.resolve(path);
+        final Path destination;
+        if (SaverUtils.isWindowsRootPath(path)) {
+            destination = base.resolve(path.substring(1));
+        } else {
+            destination = base.resolve(path);
+        }
 
         if (log.isTraceEnabled()) {
             log.trace("Saving to file " + destination.toAbsolutePath());

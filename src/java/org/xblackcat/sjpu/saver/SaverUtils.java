@@ -1,5 +1,6 @@
 package org.xblackcat.sjpu.saver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * 19.06.2014 10:18
@@ -83,5 +85,33 @@ class SaverUtils {
         }
         builder.append(CLASS_SUFFIX);
         return builder.toString();
+    }
+
+    /**
+     * Constructs an URI from specified with root path
+     *
+     * @param target initial URI
+     * @return URI to root on the location
+     * @throws URISyntaxException if root URI can't be built
+     */
+    public static URI getRootUri(URI target) throws URISyntaxException {
+        return new URI(
+                target.getScheme(),
+                target.getUserInfo(),
+                StringUtils.defaultIfBlank(target.getHost(), ""),
+                target.getPort(),
+                "/",
+                null,
+                null
+        );
+    }
+
+    public static boolean isWindowsRootPath(String path) {
+        if (path == null || path.length() < 3) {
+            return false;
+        }
+
+        // Check for URI path part for '/<drive letter>:' pattern
+        return path.charAt(0) == '/' && path.charAt(2) == ':' && Character.isLetter(path.charAt(1));
     }
 }

@@ -1,10 +1,13 @@
 package org.xblackcat.sjpu.saver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xblackcat.sjpu.util.function.FunctionEx;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Wrapper for {@linkplain ILocation} implementation
@@ -24,8 +27,10 @@ public class Saver implements ISaver {
 
     @Override
     public void save(final URI target, InputStream data, Compression compression) throws IOException {
-        try (ILocation file = locationProvider.apply(target)) {
-            file.save("", data, compression);
+        try (ILocation file = locationProvider.apply(SaverUtils.getRootUri(target))) {
+            file.save(target.getPath(), data, compression);
+        } catch (URISyntaxException e) {
+            throw new MalformedURLException(e.getMessage());
         }
     }
 }

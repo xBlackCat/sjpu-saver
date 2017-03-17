@@ -16,8 +16,6 @@
  */
 package org.xblackcat.sjpu.utils;
 
-import java.io.File;
-
 /**
  * COPIED FROM apache-commons IO
  * <p>
@@ -91,39 +89,10 @@ public class FilenameUtils {
     private static final char WINDOWS_SEPARATOR = '\\';
 
     /**
-     * The system separator character.
-     */
-    private static final char SYSTEM_SEPARATOR = File.separatorChar;
-
-    /**
-     * The separator character that is the opposite of the system separator.
-     */
-    private static final char OTHER_SEPARATOR;
-
-    static {
-        if (isSystemWindows()) {
-            OTHER_SEPARATOR = UNIX_SEPARATOR;
-        } else {
-            OTHER_SEPARATOR = WINDOWS_SEPARATOR;
-        }
-    }
-
-    /**
      * Instances should NOT be constructed in standard programming.
      */
     public FilenameUtils() {
         super();
-    }
-
-    //-----------------------------------------------------------------------
-
-    /**
-     * Determines if Windows file system is in use.
-     *
-     * @return true if the system is Windows
-     */
-    static boolean isSystemWindows() {
-        return SYSTEM_SEPARATOR == WINDOWS_SEPARATOR;
     }
 
     //-----------------------------------------------------------------------
@@ -181,7 +150,7 @@ public class FilenameUtils {
      * @return the normalized filename, or null if invalid
      */
     public static String normalize(String filename) {
-        return doNormalize(filename, SYSTEM_SEPARATOR, true);
+        return doNormalize(filename);
     }
 
     //-----------------------------------------------------------------------
@@ -189,12 +158,10 @@ public class FilenameUtils {
     /**
      * Internal method to perform the normalization.
      *
-     * @param filename      the filename
-     * @param separator     The separator character to use
-     * @param keepSeparator true to keep the final separator
+     * @param filename the filename
      * @return the normalized filename
      */
-    private static String doNormalize(String filename, char separator, boolean keepSeparator) {
+    private static String doNormalize(String filename) {
         if (filename == null) {
             return null;
         }
@@ -211,23 +178,22 @@ public class FilenameUtils {
         filename.getChars(0, filename.length(), array, 0);
 
         // fix separators throughout
-        char otherSeparator = separator == SYSTEM_SEPARATOR ? OTHER_SEPARATOR : SYSTEM_SEPARATOR;
         for (int i = 0; i < array.length; i++) {
-            if (array[i] == otherSeparator) {
-                array[i] = separator;
+            if (array[i] == WINDOWS_SEPARATOR) {
+                array[i] = UNIX_SEPARATOR;
             }
         }
 
         // add extra separator on the end to simplify code below
         boolean lastIsDirectory = true;
-        if (array[size - 1] != separator) {
-            array[size++] = separator;
+        if (array[size - 1] != UNIX_SEPARATOR) {
+            array[size++] = UNIX_SEPARATOR;
             lastIsDirectory = false;
         }
 
         // adjoining slashes
         for (int i = prefix + 1; i < size; i++) {
-            if (array[i] == separator && array[i - 1] == separator) {
+            if (array[i] == UNIX_SEPARATOR && array[i - 1] == UNIX_SEPARATOR) {
                 System.arraycopy(array, i, array, i - 1, size - i);
                 size--;
                 i--;
@@ -236,8 +202,8 @@ public class FilenameUtils {
 
         // dot slash
         for (int i = prefix + 1; i < size; i++) {
-            if (array[i] == separator && array[i - 1] == '.' &&
-                    (i == prefix + 1 || array[i - 2] == separator)) {
+            if (array[i] == UNIX_SEPARATOR && array[i - 1] == '.' &&
+                    (i == prefix + 1 || array[i - 2] == UNIX_SEPARATOR)) {
                 if (i == size - 1) {
                     lastIsDirectory = true;
                 }
@@ -250,8 +216,8 @@ public class FilenameUtils {
         // double dot slash
         outer:
         for (int i = prefix + 2; i < size; i++) {
-            if (array[i] == separator && array[i - 1] == '.' && array[i - 2] == '.' &&
-                    (i == prefix + 2 || array[i - 3] == separator)) {
+            if (array[i] == UNIX_SEPARATOR && array[i - 1] == '.' && array[i - 2] == '.' &&
+                    (i == prefix + 2 || array[i - 3] == UNIX_SEPARATOR)) {
                 if (i == prefix + 2) {
                     return null;
                 }
@@ -260,7 +226,7 @@ public class FilenameUtils {
                 }
                 int j;
                 for (j = i - 4; j >= prefix; j--) {
-                    if (array[j] == separator) {
+                    if (array[j] == UNIX_SEPARATOR) {
                         // remove b/../ from a/b/../c
                         System.arraycopy(array, i + 1, array, j + 1, size - i);
                         size -= i - j;
@@ -281,7 +247,7 @@ public class FilenameUtils {
         if (size <= prefix) {  // should never be less than prefix
             return new String(array, 0, size);
         }
-        if (lastIsDirectory && keepSeparator) {
+        if (lastIsDirectory) {
             return new String(array, 0, size);  // keep trailing separator
         }
         return new String(array, 0, size - 1);  // lose trailing separator
@@ -350,21 +316,6 @@ public class FilenameUtils {
         } else {
             return normalize(basePath + '/' + fullFilenameToAdd);
         }
-    }
-
-    //-----------------------------------------------------------------------
-
-    /**
-     * Converts all separators to the Unix separator of forward slash.
-     *
-     * @param path the path to be changed, null ignored
-     * @return the updated path
-     */
-    public static String separatorsToUnix(String path) {
-        if (path == null || path.indexOf(WINDOWS_SEPARATOR) == -1) {
-            return path;
-        }
-        return path.replace(WINDOWS_SEPARATOR, UNIX_SEPARATOR);
     }
 
     //-----------------------------------------------------------------------

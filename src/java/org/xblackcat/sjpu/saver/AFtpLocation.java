@@ -67,7 +67,7 @@ abstract class AFtpLocation<F extends FTPClient> implements ILocation {
             return;
         }
 
-        ensurePathExists(ftp, path.substring(0, path.lastIndexOf('/')));
+        ensurePathExists(ftp, StringUtils.substringBeforeLast(path, "/"));
 
         if (!ftp.makeDirectory(path)) {
             throw new IOException("Can't create FTP folder " + path);

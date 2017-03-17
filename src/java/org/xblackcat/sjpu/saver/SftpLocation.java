@@ -68,7 +68,7 @@ public class SftpLocation implements ILocation {
         }
 
         if (privateKeyFile != null) {
-            passphrase = privateKeyPass != null ? privateKeyPass.getBytes(StandardCharsets.UTF_8) : null;
+            passphrase = privateKeyPass != null && privateKeyPass.length() > 0 ? privateKeyPass.getBytes(StandardCharsets.UTF_8) : null;
         }
 
         if (acceptAll) {
@@ -126,7 +126,7 @@ public class SftpLocation implements ILocation {
         if (StringUtils.startsWith(path, "/")) {
             file = path;
         } else {
-            file = FilenameUtils.separatorsToUnix(FilenameUtils.concat(uri.getPath().substring(1), path));
+            file = FilenameUtils.concat(uri.getPath().substring(1), path);
         }
 
         if (StringUtils.isBlank(file)) {
