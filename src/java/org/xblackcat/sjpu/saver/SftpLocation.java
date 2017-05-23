@@ -122,6 +122,8 @@ public class SftpLocation implements ILocation {
     public void save(String path, InputStream data, Compression compression) throws IOException {
         validateSession();
 
+        path = path.substring(1);
+
         String file;
         if (StringUtils.startsWith(path, "/")) {
             file = path;
@@ -144,12 +146,9 @@ public class SftpLocation implements ILocation {
                         log.debug("Upload file to " + file);
                     }
 
-                    int i = file.lastIndexOf('/');
-                    if (i >= 0) {
-                        String parent = file.substring(0, i);
-                        if (!isDir(c, parent)) {
-                            mkdirs(c, parent);
-                        }
+                    int i = path.lastIndexOf('/');
+                    if (i > 0) {
+                        mkdirs(c, path.substring(0, i));
                     }
 
                     try (OutputStream os = compression.cover(new BufferedOutputStream(c.put(file, ChannelSftp.OVERWRITE)))) {
@@ -218,32 +217,50 @@ public class SftpLocation implements ILocation {
     }
 
     private static void mkdirs(ChannelSftp channel, String path) throws SftpException {
-        int i = path.lastIndexOf('/');
-        if (i >= 0) {
-            String parentPath = path.substring(0, i);
-            boolean isDir = isDir(channel, parentPath);
-            if (!isDir) {
-                mkdirs(channel, parentPath);
-            }
+        if (log.isTraceEnabled()) {
+            log.trace("Touch dir " + path);
         }
 
-        channel.mkdir(path);
+        if (path.length() == 0 || "/".equals(path)) {
+            return;
+        }
+        Status status = isDir(channel, path);
+        if (status == Status.NotExists) {
+            int i = path.lastIndexOf('/');
+            if (i >= 0) {
+                mkdirs(channel, path.substring(0, i));
+            }
+            if (log.isTraceEnabled()) {
+                log.trace("Create dir " + path);
+            }
+
+            channel.mkdir(path);
+        } else if (status == Status.File) {
+            throw new SftpException(ChannelSftp.SSH_FX_FAILURE, "Expected dir on path " + path + " but got file");
+        }
     }
 
-    private static boolean isDir(ChannelSftp channel, String parentPath) {
+    private static Status isDir(ChannelSftp channel, String parentPath) {
         try {
             if (log.isTraceEnabled()) {
                 log.trace("Check parent folder for existence: " + parentPath);
             }
             SftpATTRS stat = channel.stat(parentPath);
-            return stat != null && stat.isDir();
+            if (stat != null) {
+                return stat.isDir() ? Status.Directoty : Status.File;
+            }
         } catch (SftpException e) {
             // Not found
             if (log.isTraceEnabled()) {
                 log.trace("Folder " + parentPath + " is not exists.");
             }
-            return false;
         }
+        return Status.NotExists;
+    }
 
+    private enum Status {
+        NotExists,
+        Directoty,
+        File
     }
 }
